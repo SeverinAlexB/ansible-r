@@ -1,0 +1,35 @@
+- name: Create backup folder
+  ansible.builtin.file:
+    path: /etc/network/backups
+    state: directory
+
+- name: Backup old interfaces file
+  command: cp /etc/network/interfaces /etc/network/backups/interfaces_temp
+
+- name: Write new interfaces file
+  template:
+    src: 'interfaces.j2'
+    dest: "/etc/network/interfaces"
+    mode: '0644'
+    owner: 'root'
+    group: 'root'
+  register: interfaces_file
+
+- name: Copy backup if changed {{ date }}
+  command: mv /etc/network/backups/interfaces_temp /etc/network/backups/interfaces_{{ date }}
+  vars:
+    date: "{{ lookup('pipe', 'date +%Y-%m-%d.%T') }}"
+  notify: restart networking
+  when: interfaces_file.changed
+
+- name: Delete temp backup
+  ansible.builtin.file:
+    path: /etc/network/backups/interfaces_temp
+    state: absent
+
+- name: IP forward -> 1
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    state: present
+

@@ -1,0 +1,58 @@
+# Hardens SSHD
+# Disables root login, only allows pubkey login, only allows strong cryptography
+# 
+
+- name: Install fail2ban
+  apt: 
+    name: "fail2ban"   
+    state: latest
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Override the basic fail2ban configuration with .local file
+  copy:
+    src: jail.local
+    dest: /etc/fail2ban/jail.local
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart fail2ban
+
+- name: Get openssh-version
+  command: ssh -V
+  register: sshd_version_raw
+  changed_when: false
+  check_mode: false
+
+- name: Parse openssh-version
+  set_fact:
+    sshd_version: "{{ sshd_version_raw.stderr | regex_replace('.*_([0-9]*.[0-9]).*', '\\1') }}"
+
+- name: Set macs according to openssh-version if openssh >= 7.6
+  set_fact:
+    ssh_macs: '{{ ssh_macs_76_default }}'
+
+- name: Set ciphers according to openssh-version if openssh >= 6.6
+  set_fact:
+    ssh_ciphers: '{{ ssh_ciphers_66_default }}'
+
+- name: Set kex according to openssh-version if openssh >= 8.0
+  set_fact:
+    ssh_kex: '{{ ssh_kex_80_default }}'
+  when: sshd_version is version('8.0', '>=')
+
+- name: Set kex according to openssh-version if openssh >= 8.5
+  set_fact:
+    ssh_kex: '{{ ssh_kex_85_default }}'
+  when: sshd_version is version('8.5', '>=')
+
+- name: Create sshd_config and set permissions to root/600
+  template:
+    src: 'sshd_config.j2'
+    dest: "/etc/ssh/sshd_config"
+    mode: '0600'
+    owner: 'root'
+    group: 'root'
+    validate: '/usr/sbin/sshd -T -C user=root -C host=localhost -C addr=localhost -C lport=22 -f %s'
+  notify: restart sshd
+

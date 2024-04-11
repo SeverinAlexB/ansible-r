@@ -1,0 +1,50 @@
+# Sets the variable current_channel_acceptor_version.
+
+# - name: Check if ca is installed
+#   stat:
+#     path: '/home/bitcoin/.lightning/available-plugins/channel-acceptor/'
+#   register: ca_installed
+
+# - name: Set current cln version if cln not installed
+#   set_fact:
+#     current_channel_acceptor_version: 'not_installed'
+#   when: not ca_installed.stat.exists
+
+# - name: Get currently installed cln version
+#   command: git describe --tags
+#   register: raw_current_ca_version
+#   changed_when: false
+#   check_mode: false
+#   args:
+#     chdir: /home/bitcoin/.lightning/available-plugins/channel-acceptor/
+#   when: ca_installed.stat.exists
+
+# - name: Parse currently installed channel_acceptor version
+#   set_fact:
+#     current_channel_acceptor_version: '{{raw_current_ca_version.stdout[1:]}}'
+#   when: ca_installed.stat.exists
+
+- name: Check if channel_acceptor is installed
+  stat:
+    path: '/home/bitcoin/.lightning/available-plugins/channel-acceptor/__version__.py'
+  register: ca_installed
+
+- name: Set current channel_acceptor version if not installed
+  set_fact:
+    current_channel_acceptor_version: 'not_installed'
+  when: not ca_installed.stat.exists
+
+- name: Get currently installed channel_acceptor version
+  command: python3 -c "from __version__ import version; print(version)"
+  register: raw_current_ca_version
+  changed_when: false
+  check_mode: false
+  args:
+    chdir: /home/bitcoin/.lightning/available-plugins/channel-acceptor/
+  when: ca_installed.stat.exists
+
+- name: Parse currently installed channel_acceptor version
+  set_fact:
+    current_channel_acceptor_version: '{{raw_current_ca_version.stdout}}'
+  when: ca_installed.stat.exists
+

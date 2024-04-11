@@ -1,0 +1,24 @@
+- name: Check if super_bitcoind is installed
+  stat:
+    path: '/home/bitcoin/.lightning/available-plugins/super-bitcoind/__version__.py'
+  register: sb_installed
+
+- name: Set current super_bitcoind version if not installed
+  set_fact:
+    current_super_bitcoind_version: 'not_installed'
+  when: not sb_installed.stat.exists
+
+- name: Get currently installed super_bitcoind version
+  command: python3 -c "from __version__ import version; print(version)"
+  register: raw_current_sb_version
+  changed_when: false
+  check_mode: false
+  args:
+    chdir: /home/bitcoin/.lightning/available-plugins/super-bitcoind/
+  when: sb_installed.stat.exists
+
+- name: Parse currently installed channel_acceptor version
+  set_fact:
+    current_super_bitcoind_version: '{{raw_current_sb_version.stdout}}'
+  when: sb_installed.stat.exists
+

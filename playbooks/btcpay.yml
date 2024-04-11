@@ -1,0 +1,6 @@
+---
+- hosts: btcpay
+  become: True
+  roles:
+    - role: common
+    - role: btcpay

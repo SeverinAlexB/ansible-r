@@ -1,0 +1,7 @@
+
+# https://madaidans-insecurities.github.io/guides/linux-hardening.html#usbs
+# https://wiki.debian.org/USBGuard
+- name: Only allow whitelisted USB devices
+  apt:
+    name: ['usbguard']
+    state: 'present'

@@ -1,0 +1,14 @@
+- name: Create super_bitcoind.yaml
+  template:
+    src: '.lightning/super_bitcoind.yaml.j2'
+    dest: '/home/bitcoin/.lightning/super_bitcoind.yaml'
+    mode: '0600'
+    owner: 'bitcoin'
+    group: 'bitcoin'
+  register: sb_config
+
+- name: Restart service if things got updated
+  assert: { that: true, quiet: true }
+  changed_when: true
+  notify: restart lightning
+  when: sb_config.changed

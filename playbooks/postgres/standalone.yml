@@ -1,0 +1,9 @@
+---
+- hosts: postgres_standalone
+  become: True
+  roles:
+    - role: ../common
+      sshd_listen_publicly: True
+    - base
+    - create_database
+

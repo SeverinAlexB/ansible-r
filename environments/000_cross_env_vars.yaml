@@ -1,0 +1,2 @@
+# Variables that apply to all environments.
+# All environments/group_vars have a symlink to this file so it is shared.

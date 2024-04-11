@@ -1,0 +1,11 @@
+[sshd]
+enabled = true
+port = ssh
+
+# The number of seconds between login attempts for maxretry. 
+findtime = 600
+# attempts from a single ip before a ban is imposed.
+maxretry = 6
+# the number of seconds that a host is banned for.
+bantime = 3600
+

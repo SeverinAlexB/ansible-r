@@ -1,0 +1,12 @@
+nodes:
+{% for node in bitcoin_nodes %}
+  - ip: {{node.ip}}
+    port: {{node.port}}
+    user: '{{node.user}}'
+    password: '{{node.password}}'
+{% endfor %}
+
+log_file: logs/super_bitcoind.txt
+log_level: INFO
+single_bitcoin_node_timeout: 60  # seconds
+use_disaster_fallback: true

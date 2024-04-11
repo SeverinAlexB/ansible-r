@@ -1,0 +1,20 @@
+- name: create bitcoin user
+  user:
+    name: bitcoin
+    create_home: true
+    password: '!'
+
+- name: Detect version
+  include_tasks: detect_version.yml
+
+- name: bitcoind version
+  debug: 
+    msg: "Current: {{ current_bitcoind_version }}. Should: {{bitcoin_version}}."
+
+- name: Install binaries
+  include_tasks: install_binaries.yml
+  when: current_bitcoind_version != bitcoin_version
+
+- name: Configure service
+  include_tasks: install_service.yml
+  when: install_service

@@ -1,0 +1,67 @@
+- name: Create tmp directory
+  ansible.builtin.file:
+    path: /tmp/channel-acceptor/
+    state: directory
+
+- name: Download channel_acceptor {{channel_acceptor_version}}
+  get_url:
+    url: https://github.com/redan-ch/cln-channel-acceptor/releases/download/v{{channel_acceptor_version}}/cln_channel_acceptor_{{channel_acceptor_version}}.tar.gz
+    dest: /tmp/channel-acceptor/cln_channel_acceptor_{{channel_acceptor_version}}.tar.gz
+    checksum: sha256:{{ channel_acceptor_checksum }}
+
+- name: Create files dir
+  ansible.builtin.file:
+    path: /tmp/channel-acceptor/channel-acceptor
+    state: directory
+
+- name: Unarchive
+  unarchive:
+    copy: false
+    src: /tmp/channel-acceptor/cln_channel_acceptor_{{channel_acceptor_version}}.tar.gz
+    dest: /tmp/channel-acceptor/channel-acceptor
+
+- name: Copy file with owner and permissions
+  ansible.builtin.copy:
+    src: '/tmp/channel-acceptor/channel-acceptor'
+    dest: /home/bitcoin/.lightning/available-plugins/
+    mode: '0755'
+    owner: bitcoin
+    group: bitcoin
+    remote_src: yes
+
+- name: Delete tmp folder
+  file:
+    state: absent
+    path: /tmp/channel-acceptor
+
+- name: Install requirements
+  ansible.builtin.pip:
+    requirements: /home/bitcoin/.lightning/available-plugins/channel-acceptor/requirements.txt
+    virtualenv: /home/bitcoin/.lightning/available-plugins/channel-acceptor/venv
+    virtualenv_python: python3.10
+
+- name: Recursively change ownership of a directory
+  ansible.builtin.file:
+    path: /home/bitcoin/.lightning/available-plugins/channel-acceptor/venv
+    state: directory
+    recurse: yes
+    owner: bitcoin
+    group: bitcoin
+
+- name: Copy venv ca start script
+  ansible.builtin.copy:
+    src: channel_acceptor.sh
+    dest: /home/bitcoin/.lightning/available-plugins/channel-acceptor/channel_acceptor.sh
+    mode: '0700'
+    owner: bitcoin
+    group: bitcoin
+
+- name: Create a symbolic link
+  ansible.builtin.file:
+    src: /home/bitcoin/.lightning/available-plugins/channel-acceptor/channel_acceptor.sh 
+    dest: /home/bitcoin/.lightning/plugins/channel_acceptor.sh
+    owner: bitcoin
+    group: bitcoin
+    state: link
+  notify: restart lightning
+

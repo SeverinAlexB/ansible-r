@@ -1,0 +1,86 @@
+
+# https://madaidans-insecurities.github.io/guides/linux-hardening.html#sysctl-kernel
+- name: Prevent kernel pointer leaks kptr_restrict
+  ansible.posix.sysctl:
+    name: kernel.kptr_restrict
+    value: '2'
+    state: present
+
+- name: Prevent kernel info leaks dmesg_restrict
+  ansible.posix.sysctl:
+    name: kernel.dmesg_restrict
+    value: '1'
+    state: present
+
+- name: Prevent kernel info leaks printk
+  ansible.posix.sysctl:
+    name: kernel.printk
+    value: '3 3 3 3'
+    state: present
+
+- name: Prevent kernel info leaks unprivileged_bpf_disabled
+  ansible.posix.sysctl:
+    name: kernel.unprivileged_bpf_disabled
+    value: '1'
+    state: present
+
+- name: Prevent kernel info leaks bpf_jit_harden
+  ansible.posix.sysctl:
+    name: net.core.bpf_jit_harden
+    value: '2'
+    state: present
+
+- name: Prevent kernel leaks ldisc_autoload
+  ansible.posix.sysctl:
+    name: dev.tty.ldisc_autoload
+    value: '0'
+    state: present
+
+- name: Prevent kernel leaks kexec_load_disabled
+  ansible.posix.sysctl:
+    name: kernel.kexec_load_disabled
+    value: '1'
+    state: present
+
+- name: Prevent kernel leaks sysrq
+  ansible.posix.sysctl:
+    name: kernel.sysrq
+    value: '4'
+    state: present
+
+# https://madaidans-insecurities.github.io/guides/linux-hardening.html#core-dumps
+- name: Prevent core dumps
+  ansible.posix.sysctl:
+    name: kernel.core_pattern
+    value: '|/bin/false'
+    state: present
+
+- name: Prevent systemd core dumps 1
+  ansible.builtin.file:
+    path: /etc/systemd/coredump.conf.d/
+    state: directory
+
+- name: Prevent systemd core dumps 2
+  copy:
+    src: systemd.disable.conf
+    dest: /etc/systemd/coredump.conf.d/disable.conf
+    owner: root
+    group: root
+
+- name: Prevent ulimit core dumps
+  ansible.builtin.lineinfile:
+    path: /etc/security/limits.conf
+    regexp: '^\* hard core 0$'
+    line: "* hard core 0"
+
+- name: Prevent elevated privilidge processes core dump
+  ansible.posix.sysctl:
+    name: fs.suid_dumpable
+    value: '0'
+    state: present
+
+- name: Only swap if really necessary to prevent core dumps
+  ansible.posix.sysctl:
+    name: vm.swappiness
+    value: '1'
+    state: present

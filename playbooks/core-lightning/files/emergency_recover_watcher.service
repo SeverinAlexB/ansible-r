@@ -1,0 +1,15 @@
+[Unit]
+Description=Emergency recover watcher core-lightning
+After=lightning.service
+
+[Service]
+ExecStart=/usr/bin/emergency_recover_watcher.sh /var/gcs-backup-mount-unencrypted
+
+User=bitcoin
+Group=bitcoin
+Type=simple
+
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,8 @@
+- name: Install gcsfuse
+  include_tasks: install_gcsfuse.yml
+
+- name: Mount backup bucket
+  include_tasks: mount_gcs_backup_dir.yml
+
+- name: Install watcher
+  include_tasks: watcher.yml

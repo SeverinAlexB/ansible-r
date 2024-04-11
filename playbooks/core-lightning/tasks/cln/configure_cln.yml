@@ -1,0 +1,22 @@
+- name: Create lightning config
+  template:
+    src: '.lightning/config.j2'
+    dest: '/home/bitcoin/.lightning/config'
+    mode: '0600'
+    owner: 'bitcoin'
+    group: 'bitcoin'
+  notify: restart lightning
+
+
+- name: Create lightning.service
+  ansible.builtin.copy:
+    src: 'lightning.service'
+    dest: '/etc/systemd/system/lightning.service'
+    mode: '0755'
+  notify: restart lightning
+
+- name: Allow ufw port 9735
+  community.general.ufw:
+      rule: 'allow'
+      port: '9735'
+

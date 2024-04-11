@@ -1,0 +1,13 @@
+- name: Detect current super_bitcoind version
+  include_tasks: detect_version.yml
+
+- name: Compare super_bitcoind versions
+  debug: 
+    msg: "Current: {{ current_super_bitcoind_version }}. Should: {{super_bitcoind_version}}."
+
+- name: Install super_bitcoind
+  include_tasks: install.yml
+  when: current_super_bitcoind_version != super_bitcoind_version
+
+- name: Configure super-bitcoind
+  include_tasks: configure.yml

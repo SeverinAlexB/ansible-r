@@ -1,0 +1,23 @@
+# Sets the variable current_bitcoind_version.
+# Sets 'not_installed' in case it can't find.
+
+- name: Check if bitcoin-cli is installed
+  stat:
+    path: '/var/lib/bitcoind/version'
+  register: bitcoind_installed
+
+- name: Set current bitcoind version if not installed
+  set_fact:
+    current_bitcoind_version: 'not_installed'
+  when: not bitcoind_installed.stat.exists
+
+- name: Get currently installed bitcoind version
+  command: cat /var/lib/bitcoind/version
+  register: raw_bitcoind_version
+  changed_when: false
+  check_mode: false
+  when: bitcoind_installed.stat.exists
+
+- set_fact:
+    current_bitcoind_version: "{{ raw_bitcoind_version.stdout }}"
+  when: bitcoind_installed.stat.exists

@@ -1,0 +1,7 @@
+# Dependencies installed like python requirements.txt
+collections:
+  # With the collection name, version, and source options
+  - name: community.general
+    version: 5.5.0
+  - name: community.postgresql
+    version: 2.2.0

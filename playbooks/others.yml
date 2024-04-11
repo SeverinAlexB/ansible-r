@@ -1,0 +1,5 @@
+---
+- hosts: other_servers
+  become: True
+  roles:
+    - common

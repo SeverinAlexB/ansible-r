@@ -1,0 +1,10 @@
+- name: Replication config
+  include_tasks: replication_config.yml
+
+
+- name: Create databases
+  include_tasks: create_database.yml
+  loop: "{{ postgres_databases }}"
+
+- name: Remove old slave config if exists
+  include_tasks: remove_slave_config.yml

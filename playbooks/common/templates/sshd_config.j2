@@ -1,0 +1,84 @@
+# Added by Ansible SSH hardeninig
+# This is the sshd server system-wide configuration file.  See
+# sshd_config(5) for more information.
+
+# This sshd was compiled with PATH=/usr/bin:/bin:/usr/sbin:/sbin
+
+# The strategy used for options in the default sshd_config shipped with
+# OpenSSH is to specify options with their default value where
+# possible, but leave them commented.  Uncommented options override the
+# default value.
+
+Include /etc/ssh/sshd_config.d/*.conf
+
+Port 22
+
+# Addresses sshd listens on. Default is 0.0.0.0.
+# Specify desired address here if you don't want sshd to listen on all available addresses.
+{% if sshd_listen_publicly %}
+ListenAddress 0.0.0.0
+{% else %}
+ListenAddress {{private_ip}}
+{% endif %}
+
+StrictModes yes
+LogLevel verbose
+
+{{ 'Ciphers ' ~ ssh_ciphers|join(',') if ssh_ciphers else 'Ciphers'|comment }}
+{{ 'MACs ' ~ ssh_macs|join(',') if ssh_macs else 'MACs'|comment }}
+{{ 'KexAlgorithms ' ~ ssh_kex|join(',') if ssh_kex else 'KexAlgorithms'|comment }}
+
+LoginGraceTime 20
+MaxAuthTries 3
+MaxSessions 20
+MaxStartups 10:30:60
+
+# Enable public key authentication
+PubkeyAuthentication yes
+
+# Never use host-based authentication. It can be exploited.
+IgnoreRhosts yes
+IgnoreUserKnownHosts yes
+HostbasedAuthentication no
+
+UsePAM yes
+
+AuthenticationMethods publickey
+
+PasswordAuthentication no
+PermitEmptyPasswords no
+ChallengeResponseAuthentication no
+
+KerberosAuthentication no
+KerberosOrLocalPasswd no
+KerberosTicketCleanup yes
+KerberosGetAFSToken no
+
+# Only enable GSSAPI authentication if it is configured.
+GSSAPIAuthentication no
+GSSAPICleanupCredentials yes
+
+# Disable TCP keep alive since it is spoofable. Use ClientAlive messages instead, they use the encrypted channel
+TCPKeepAlive no
+
+# Manage `ClientAlive..` signals via interval and maximum count.
+# This will periodically check up to a `..CountMax` number of times within `..Interval` timeframe,
+# and abort the connection once these fail.
+ClientAliveInterval 600
+ClientAliveCountMax 3
+
+PermitTunnel no
+AllowAgentForwarding no
+
+X11Forwarding no
+X11UseLocalhost yes
+
+PermitUserEnvironment no
+
+PermitRootLogin no
+
+{% if sshd_listen_publicly %}
+AllowUsers redan
+{% else %}
+AllowUsers redan@10.*.*.*
+{% endif %}

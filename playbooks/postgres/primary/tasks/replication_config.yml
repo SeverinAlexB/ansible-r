@@ -1,0 +1,43 @@
+
+- name: Create user 'repli'
+  community.postgresql.postgresql_user:
+    name: repli
+    password: "{{postgres_repli_password}}"
+    role_attr_flags: REPLICATION,LOGIN # Can login and do replication
+    ssl_mode: require
+  become_user: postgres
+
+- name: Grant user repli replication access.
+  community.postgresql.postgresql_pg_hba:
+    dest: /etc/postgresql/14/main/pg_hba.conf
+    contype: hostssl
+    users: repli
+    source: '{{postgres_allow_subnet}}'
+    databases: replication
+    method: scram-sha-256
+    keep_comments_at_rules: true
+    comment: "Allow replication with the repli user."
+
+- name: Add replication slot
+  become_user: postgres
+  community.postgresql.postgresql_slot:
+    slot_name: "{{item}}"
+  loop: '{{postgres_slave_names}}'
+
+# Add replication config for primary
+- name: Set postgresql.conf for primary
+  lineinfile:
+    path: "/etc/postgresql/14/main/postgresql.conf"
+    regex: "^(#)?{{item.key}}="
+    line: "{{item.key}}={{item.value}}"
+    state: present
+  loop:
+    - { key: "wal_level", value: "'replica'" }
+    - { key: "wal_log_hints", value: "on" }
+    - { key: "max_wal_senders", value: "10" }
+    - { key: "wal_keep_size", value: "1024" } # Maybe not needed because of replicatin slots https://www.depesz.com/2020/07/27/waiting-for-postgresql-14-rename-wal_keep_segments-to-wal_keep_size/
+    - { key: "max_replication_slots", value: "10" }
+    - { key: "synchronous_standby_names", value: "'FIRST 1 ({{postgres_slave_names | join(', ')}})'" }
+    - { key: "full_page_writes", value: "on" }
+  notify: restart postgres
+

@@ -1,0 +1,73 @@
+# https://github.com/gabridome/docs/blob/master/c-lightning_with_postgresql_reliability.md
+
+- name: Add gpg key
+  ansible.builtin.get_url:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    dest: /etc/apt/trusted.gpg.d/postgres-ACCC4CF8.asc
+
+- name: Add repo | apt source  
+  ansible.builtin.apt_repository:
+    repo: "deb http://apt.postgresql.org/pub/repos/apt jammy-pgdg main"
+    state: present
+
+- name: Install postgres
+  apt: 
+    name: 
+    - "postgresql-14"
+    - "postgresql-contrib"
+    - "libpq-dev"
+    state: latest
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install psycopg2 python package | Used to run community.postgresql ansible
+  ansible.builtin.pip:
+    name: psycopg2
+
+- name: Create a new database with name "redan"
+  community.postgresql.postgresql_db:
+    name: redan
+  become_user: postgres
+  when: not _postgres_is_standby_detected
+
+- name: Create redan postgres role
+  community.postgresql.postgresql_user:
+    db: redan
+    name: redan
+    password: '{{postgres_redan_password}}'
+    role_attr_flags: SUPERUSER
+  become: True
+  become_user: postgres
+  when: not _postgres_is_standby_detected
+
+- name: Grant user redan access from outside.
+  community.postgresql.postgresql_pg_hba:
+    dest: /etc/postgresql/14/main/pg_hba.conf
+    contype: hostssl
+    users: redan
+    source: '{{postgres_allow_subnet}}'
+    databases: all
+    method: scram-sha-256
+    keep_comments_at_rules: True
+    comment: "Operational user."
+  notify: Reload pg_hba.conf
+
+- name: configure ufw to allow port 5432
+  community.general.ufw:
+      rule: 'allow'
+      port: '5432'
+      src: '{{postgres_allow_subnet}}'
+
+- name: Set postgresql.conf
+  lineinfile:
+    path: "/etc/postgresql/14/main/postgresql.conf"
+    regex: "^(#)?{{item.key}}="
+    line: "{{item.key}}={{item.value}}"
+    state: present
+  loop:
+    - { key: "listen_addresses", value: "'*'" }
+  notify: restart postgres
+
+
+
+

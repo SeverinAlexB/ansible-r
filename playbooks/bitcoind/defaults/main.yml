@@ -1,0 +1,8 @@
+bitcoin_version: '23.0'
+bitcoin_checksum: 2cca490c1f2842884a3c5b0606f179f9f937177da4eadd628e3f7fd7e25d26d0 
+bitcoind_rpcthreads: '40'
+bitcoind_rpcallowip:
+  - 127.0.0.1
+bitcoind_rpcauth:
+  - redan:463379424c31d56750da211208d40c4e$17e128029bbd500703e1773160fe2e5f231bbce8f3364051e6e6c92c6fe0b011
+install_service: True

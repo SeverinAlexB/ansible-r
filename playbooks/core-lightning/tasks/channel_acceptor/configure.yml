@@ -1,0 +1,14 @@
+- name: Create channel_acceptor.toml
+  template:
+    src: '.lightning/channel_acceptor.yaml.j2'
+    dest: '/home/bitcoin/.lightning/channel_acceptor.yaml'
+    mode: '0600'
+    owner: 'bitcoin'
+    group: 'bitcoin'
+  register: ca_config
+
+- name: Restart service if things got updated
+  assert: { that: true, quiet: true }
+  changed_when: true
+  notify: restart lightning
+  when: ca_config.changed

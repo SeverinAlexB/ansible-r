@@ -1,0 +1,24 @@
+# Sets the variable current_cln_version.
+# Sets 'not_installed' in case it can't find cln.
+
+- name: Check if cln is installed
+  stat:
+    path: '/usr/bin/lightning-cli'
+  register: cln_installed
+
+- name: Set current cln version if cln not installed
+  set_fact:
+    current_cln_version: 'not_installed'
+  when: not cln_installed.stat.exists
+
+- name: Get currently installed cln version
+  command: /usr/bin/lightning-cli --version
+  register: raw_cln_version2
+  changed_when: false
+  check_mode: false
+  when: cln_installed.stat.exists
+
+- name: Parse currently installed cln version
+  set_fact:
+    current_cln_version: '{{raw_cln_version2.stdout}}'
+  when: cln_installed.stat.exists

@@ -1,0 +1,9 @@
+---
+# Checkout the proxmox role README for the manual steps that have to be taken
+# before proxmox can be installed. Also for manual after steps.
+- hosts: proxmox_servers
+  become: True
+  roles:
+    # - common
+    # - dedicated_hardening
+    - proxmox

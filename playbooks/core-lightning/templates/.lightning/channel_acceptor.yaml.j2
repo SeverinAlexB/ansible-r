@@ -1,0 +1,11 @@
+public_channels:
+{% if allow_public_tor_only_nodes %}
+  allow_tor_only_nodes: true
+{% else %}
+  allow_public_tor_only_nodes: false
+{% endif %}
+
+  min_channel_size_sat: {{min_public_channel_capacity_sat}}    
+
+private_channels:
+  min_channel_size_sat: {{min_private_channel_capacity_sat}}    

@@ -1,0 +1,42 @@
+source /etc/network/interfaces.d/*
+
+auto lo
+iface lo inet loopback
+
+iface lo inet6 loopback
+
+iface enp41s0 inet manual
+
+auto enp41s0
+iface enp41s0 inet static
+        address {{public_ip}}
+        gateway {{public_gateway}}
+# Proxmox Host
+
+auto enp41s0.4000
+iface enp41s0.4000 inet manual
+
+auto vmbr4000
+iface vmbr4000 inet static
+  address {{private_ip}}
+  gatway {{private_gatway}}
+  bridge_ports enp41s0.4000
+  bridge_stp off
+  bridge_fd 0
+  mtu 1400
+  up ip route add 10.0.0.0/16 via {{private_gatway}} dev vmbr4000
+  down ip route del 10.0.0.0/16 via {{private_gatway}} dev vmbr4000
+  post-up   iptables -t nat -A POSTROUTING -s '10.0.2.0/24' -o enp41s0 -j MASQUERADE
+  post-down iptables -t nat -D POSTROUTING -s '10.0.2.0/24' -o enp41s0 -j MASQUERADE
+#Private vSwitch
+
+auto vmbr0
+iface vmbr0 inet static
+  address {{public_ip}}
+  netmask 255.255.255.255
+  # up ip route add 65.109.59.141/32 dev vmbr0
+  bridge_ports none
+  bridge_stp off
+  bridge_fd 0
+  
+#Public Switch

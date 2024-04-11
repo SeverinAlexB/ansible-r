@@ -1,0 +1,60 @@
+# installs and runs bitcoind
+
+- name: Create tmp directory 
+  ansible.builtin.file:
+    path: /tmp/bitcoind/
+    state: directory
+
+- name: download bitcoin
+  get_url:
+    url: https://bitcoincore.org/bin/bitcoin-core-{{ bitcoin_version }}/bitcoin-{{ bitcoin_version }}-x86_64-linux-gnu.tar.gz
+    dest: /tmp/bitcoind/bitcoin-{{ bitcoin_version }}-x86_64-linux-gnu.tar.gz
+    checksum: sha256:{{ bitcoin_checksum }}
+
+
+- name: unarchive bitcoin
+  unarchive:
+    copy: false
+    src: /tmp/bitcoind/bitcoin-{{ bitcoin_version }}-x86_64-linux-gnu.tar.gz
+    dest: /tmp/bitcoind/
+
+
+- name: copy bitcoind
+  copy:
+    remote_src: yes
+    src: /tmp/bitcoind/bitcoin-{{ bitcoin_version }}/bin/bitcoind
+    dest: /usr/bin/bitcoind
+    owner: bitcoin
+    group: bitcoin
+    mode: '0755'
+
+- name: copy bitcoin-cli
+  copy:
+    remote_src: yes
+    src: /tmp/bitcoind/bitcoin-{{ bitcoin_version }}/bin/bitcoin-cli
+    dest: /usr/bin/bitcoin-cli
+    owner: bitcoin
+    group: bitcoin
+    mode: '0755'
+
+
+- name: Delete tmp folder
+  file:
+    state: absent
+    path: /tmp/bitcoind
+
+- name: create /var/lib/bitcoind directory
+  file:
+    path: '/var/lib/bitcoind'
+    mode: '0755'
+    owner: 'bitcoin'
+    group: 'bitcoin'
+    state: directory
+
+- name: Add file with the current bitcoin version
+  template:
+    src: 'bitcoin_version.j2'
+    dest: "/var/lib/bitcoind/version"
+    mode: '0655'
+    owner: 'root'
+    group: 'root'

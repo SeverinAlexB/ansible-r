@@ -1,0 +1,9 @@
+- name: Install default software
+  package:
+    name: 
+      - acl
+      - python3-pip
+      - git
+      - jq
+      - htop
+    state: latest

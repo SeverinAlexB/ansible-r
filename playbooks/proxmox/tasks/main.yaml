@@ -1,0 +1,11 @@
+- name: Install proxmox
+  include_tasks: install.yml
+
+- name: Email raid config
+  include_tasks: email_raid_notify.yml
+
+- name: Set root password
+  include_tasks: root_password.yml
+
+# - name: Network interface configuration
+#   include_tasks: network_interface.yml

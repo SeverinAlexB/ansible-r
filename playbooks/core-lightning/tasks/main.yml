@@ -1,0 +1,14 @@
+- name: Install cln
+  include_tasks: cln/main.yml
+
+- name: Install tor
+  include_tasks: tor/main.yml
+
+- name: Install cln-super-bitcoind
+  include_tasks: super_bitcoind/main.yml
+
+- name: Install ChannelAcceptor
+  include_tasks: channel_acceptor/main.yml
+
+- name: Emergency recover auto backup
+  include_tasks: emergency_recover/main.yml

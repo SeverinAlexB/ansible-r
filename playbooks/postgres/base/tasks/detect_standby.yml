@@ -1,0 +1,11 @@
+- name: Detect if standby 
+  stat:
+    path: /var/lib/postgresql/14/main/standby.signal
+  register: standby_file_exists
+
+- set_fact:
+    _postgres_is_standby_detected: "{{standby_file_exists.stat.exists}}"
+
+- debug:
+    msg: "Is readonly (standby): {{_postgres_is_standby_detected}}"
+

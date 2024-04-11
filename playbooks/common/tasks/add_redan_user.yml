@@ -1,0 +1,61 @@
+- name: Add non-root user
+  ansible.builtin.user:
+    name: redan
+    groups: sudo,adm
+    shell: "/bin/bash"
+
+# How to generate a password hash?
+# https://stackoverflow.com/a/17992126
+# Password is saved in bitwarden.redan.ch.
+- name: Set redan password
+  ansible.builtin.user:
+    name: redan
+    update_password: always
+    password: "$6$rounds=656000$xou7Q.K3b7e2Dksp$PfUFHrw4TmWuxckwpq2Gzs7ZIgMDJ2G6HA.3pJv8Eupi2nsUzDC/8y6IA3g8nNe3GPouQVT66/FTmfAXMCrzs0"
+
+- name: Configuring sudoer access
+  community.general.sudoers:
+    name: allow-all-sudo
+    state: present
+    user: "redan"
+    commands: ALL
+    nopassword: True
+
+- name: Add pubkey to admin
+  ansible.posix.authorized_key:
+    user: redan
+    key: "{{ lookup('file', '../files/admin_keys.pub') }}"
+    exclusive: True
+
+- name: Lock root user
+  command: 'passwd -l root'
+
+# Only allow redan to su to root. Any other su is prevented.
+
+- name: Only allow redan su access - Write allow-redan-access
+  copy:
+    src: su-redan-access
+    dest: /etc/security/su-redan-access
+    owner: root
+    group: root
+
+- name: Only allow redan su access - Write pam.d config 1
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/su
+    regexp: '^auth  required    pam_wheel.so use_uid group=sudo debug$'
+    line: "auth  required    pam_wheel.so use_uid group=sudo debug"
+
+- name: Only allow redan su access - Write pam.d config 2
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/su
+    regexp: '^auth  required    pam_listfile.so item=user sense=allow onerr=fail file=/etc/security/su-redan-access$'
+    line: "auth  required    pam_listfile.so item=user sense=allow onerr=fail file=/etc/security/su-redan-access"
+
+- name: Remove standard default users
+  ansible.builtin.user:
+    name: "{{item}}"
+    state: "absent"
+    remove: true
+  loop:
+    - debian
+    - ubuntu

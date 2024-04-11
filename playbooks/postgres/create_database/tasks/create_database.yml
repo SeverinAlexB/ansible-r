@@ -1,0 +1,26 @@
+# Important: community.postgresql.postgresql_set doesn't work because the slave will replicate it.
+- name: Create user '{{item.user}}'
+  community.postgresql.postgresql_user:
+    name: "{{item.user}}"
+    password: "{{item.password}}"
+    role_attr_flags: REPLICATION,LOGIN # Can login and do replication
+    ssl_mode: require
+  become_user: postgres
+
+- name: Create a new database with name '{{item.database}}'
+  community.postgresql.postgresql_db:
+    name: "{{item.database}}"
+    owner: "{{item.user}}"
+  become_user: postgres
+
+- name: Grant user '{{item.user}}' access to the database '{{item.database}}'.
+  community.postgresql.postgresql_pg_hba:
+    dest: /etc/postgresql/14/main/pg_hba.conf
+    contype: hostssl
+    users: "{{item.user}}"
+    source: '{{postgres_allow_subnet}}'
+    databases: "{{item.database}}"
+    method: scram-sha-256
+    keep_comments_at_rules: true
+    comment: "Allow access cln access to the database"
+  notify: Reload pg_hba.conf

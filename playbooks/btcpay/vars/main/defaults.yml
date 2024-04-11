@@ -1,0 +1,6 @@
+nbitcoin_network: "mainnet"
+btcpaygen_crypto01: "btc"
+btcpaygen_additional_fragments: "opt-save-storage-s"
+btcpaygen_reverseproxy: "nginx"
+btcpaygen_lightning: "clightning"
+btcpay_enable_ssh: false

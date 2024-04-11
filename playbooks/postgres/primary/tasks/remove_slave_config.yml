@@ -1,0 +1,14 @@
+- name: Remove slave config if exists when slave has been switched to a primary
+  lineinfile:
+    path: "/etc/postgresql/14/main/postgresql.conf"
+    regex: "^(#)?{{item.key}}="
+    line: "#{{item.key}}={{item.value}}"
+    state: present
+  loop:
+    - { key: "primary_slot_name", value: "" }
+    - { key: "hot_standby", value: "" }
+    - { 
+        key: "primary_conninfo", 
+        value: "" 
+      }
+  notify: restart postgres

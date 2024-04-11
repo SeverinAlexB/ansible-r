@@ -1,0 +1,13 @@
+- name: Detect current cln version
+  include_tasks: cln/detect_cln_version.yml
+
+- name: Compare cln versions
+  debug: 
+    msg: "Current: {{ current_cln_version }}. Should: {{cln_version}}."
+
+- name: Install cln binaries
+  include_tasks: cln/install_cln_binaries.yml
+  when: current_cln_version != cln_version
+  
+- name: Configure lightning
+  include_tasks: configure_cln.yml

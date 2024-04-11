@@ -1,0 +1,25 @@
+# core-lightning
+cln_version: '0.12.1'
+cln_checksum: 'b8cebb7e83541ae5814788970b9be531892cd59a3f0bb89351c38622ea24e542'
+node_alias: 'undefined-paradiso'
+node_rgb: '16293B'
+allow_tor_connections: false
+allow_ip_connections: false
+use_sqlite_db: false
+
+# super-bitcoind
+super_bitcoind_version: '0.0.5'
+super_bitcoind_checksum: '6e813f0a72214a8499b58e599e924431fbdcffd456e031832552fc1ee244ea4a'
+bitcoin_nodes:
+  - ip: 38.242.157.43
+    port: 8332
+    user: redan
+    password: "{{bitcoind_password}}"
+
+# channel-acceptor
+channel_acceptor_version: '0.0.5'
+channel_acceptor_checksum: 'dfb7c485b2452927ee4875973200b0f3d3b033425278b028d267f69b782fa3e6'
+allow_public_tor_only_nodes: True
+min_private_channel_capacity_sat: 500000  # 500k sat
+min_public_channel_capacity_sat: 5000000  # 5M sat
+

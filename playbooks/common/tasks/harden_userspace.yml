@@ -1,0 +1,33 @@
+# https://madaidans-insecurities.github.io/guides/linux-hardening.html#sysctl-userspace
+
+- name: Ptrace hardening
+  ansible.posix.sysctl:
+    name: kernel.yama.ptrace_scope
+    value: '2'
+    state: present
+
+- name: Protect symlinks
+  ansible.posix.sysctl:
+    name: fs.protected_symlinks
+    value: '1'
+    state: present
+
+- name: Protect hardlinks
+  ansible.posix.sysctl:
+    name: fs.protected_hardlinks
+    value: '1'
+    state: present
+
+- name: Protect /tmp folders 1
+  ansible.posix.sysctl:
+    name: fs.protected_fifos
+    value: '2'
+    state: present
+
+- name: Protect /tmp folders 2
+  ansible.posix.sysctl:
+    name: fs.protected_regular
+    value: '2'
+    state: present
+
+

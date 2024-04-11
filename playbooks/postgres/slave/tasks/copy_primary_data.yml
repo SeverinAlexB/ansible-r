@@ -1,0 +1,38 @@
+- name: stop postgres
+  service:
+      name: postgresql
+      state: stopped
+
+- name: Delete main dir
+  file:
+    state: absent
+    path: /var/lib/postgresql/14/main
+
+- name: Use .pgpass to avoid a password prompt
+  template:
+    src: '.pgpass.j2'
+    dest: '/var/lib/postgresql/.pgpass'
+    mode: '0600'
+    owner: 'postgres'
+    group: 'postgres'
+
+- name: Replicate data from primary {{postgres_master_ip}}
+  command: 'pg_basebackup -h {{postgres_master_ip}} -U repli -D /var/lib/postgresql/14/main --slot {{postgres_slave_name}}'
+  become_user: postgres
+
+- name: Remove pgpass again because not needed anymore. 
+  ansible.builtin.file:
+    path: /var/lib/postgresql/.pgpass'
+    state: absent
+
+- name: create 
+  ansible.builtin.file:
+    path: /var/lib/postgresql/14/main/standby.signal
+    state: touch
+    mode: u=rw,g=r,o=r
+  become_user: postgres
+
+- name: start postgres
+  service:
+      name: postgresql
+      state: started

@@ -1,0 +1,44 @@
+# Which bitcoin network
+{% if bitcoind_network == "testnet" %}
+testnet=1
+
+[test]
+{% endif %}
+
+{% if bitcoind_network == "mainnet" %}
+mainnet=1
+
+[main]
+{% endif %}
+
+# What port
+port=8333
+
+# Indexing transactions
+txindex=1
+
+# Maximum mempool size
+maxmempool=1000
+
+##################################################
+#                      RPC                       #
+##################################################
+
+# RPC port
+rpcport=8332
+
+# RPC: what address to listen to
+rpcbind=0.0.0.0:8332
+
+# RPC: how many concurrent threads (4 per CLN client)
+rpcthreads={{ bitcoind_rpcthreads }}
+
+# RPC: Allowed IPs
+{% for rpcallowip in bitcoind_rpcallowip %}
+rpcallowip={{ rpcallowip }}
+{% endfor %}
+
+# RPC: Auth
+{% for rpcauth in bitcoind_rpcauth %}
+rpcauth={{ rpcauth }}
+{% endfor %}

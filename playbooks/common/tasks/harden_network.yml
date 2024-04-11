@@ -1,0 +1,33 @@
+
+# https://madaidans-insecurities.github.io/guides/linux-hardening.html#sysctl-network
+# Author: Severin
+# I only included things here that I think don't break our production system.
+# For example, some things in the guide would break PING or the routing ability of servers.
+# So it's not smart to include them.
+
+- name: Prevent SYN floods - tcp_syncookies
+  ansible.posix.sysctl:
+    name: net.ipv4.tcp_syncookies
+    value: '1'
+    state: present
+
+- name: Prevent tcp_rfc1337
+  ansible.posix.sysctl:
+    name: net.ipv4.tcp_rfc1337
+    value: '1'
+    state: present
+
+- name: Prevent IP spoofing 1
+  ansible.posix.sysctl:
+    name: net.ipv4.conf.all.rp_filter
+    value: '1'
+    state: present
+
+- name: Prevent IP spoofing 2
+  ansible.posix.sysctl:
+    name: net.ipv4.conf.default.rp_filter
+    value: '1'
+    state: present
+
+
+

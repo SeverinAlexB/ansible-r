@@ -1,0 +1,16 @@
+
+- name: Set postgresql.conf
+  lineinfile:
+    path: "/etc/postgresql/14/main/postgresql.conf"
+    regex: "^(#)?{{item.key}}="
+    line: "{{item.key}}={{item.value}}"
+    state: present
+  loop:
+    - { key: "primary_slot_name", value: "'{{postgres_slave_name}}'" }
+    - { key: "hot_standby", value: "'on'" }
+    - { 
+        key: "primary_conninfo", 
+        value: "'host={{postgres_primary_ip}} port=5432 user=repli password={{postgres_repli_password}} application_name={{postgres_slave_name}} dbname=replication'" 
+      }
+  notify: restart postgres
+

@@ -1,0 +1,8 @@
+---
+- hosts: lightning_servers
+  become: True
+  roles:
+    # - role: common
+    #   sshd_listen_publicly: True
+    - core-lightning
+

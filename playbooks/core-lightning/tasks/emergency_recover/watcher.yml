@@ -1,0 +1,21 @@
+- name: copy watcher
+  copy:
+    src: emergency_recover_watcher.sh
+    dest: /usr/bin/emergency_recover_watcher.sh
+    mode: '0755'
+
+
+- name: Create emergency_recover_watcher.service
+  ansible.builtin.copy:
+    src: 'emergency_recover_watcher.service'
+    dest: '/etc/systemd/system/emergency_recover_watcher.service'
+    mode: '0755'
+
+- name: Restart watcher
+  service:
+      name: emergency_recover_watcher
+      state: restarted
+      enabled: true
+      daemon_reload: True
+  changed_when: false
+

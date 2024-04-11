@@ -1,0 +1,48 @@
+# "lightning_nodes_backup_mount /var/gcs-backup-mount gcsfuse rw,x-systemd.requires=network-online.target,user,key_file=/home/redan/redan-364811-88fa6b548779.json"
+
+- name: Create directory for keyfile
+  ansible.builtin.file:
+    path: /etc/gcsfuse/
+    state: directory
+    owner: bitcoin
+    group: bitcoin
+
+- name: Copy Google Storage key file
+  copy:
+    src: gcs_access_keyfile.json
+    dest: /etc/gcsfuse/gcs_access_keyfile.json
+    mode: '0400'
+
+- name: Create mount point dir
+  ansible.builtin.file:
+    path: /var/gcs-backup-mount-unencrypted
+    state: directory
+
+- name: Get UID of bitcoin user
+  command: id -u bitcoin
+  register: raw_uid
+  changed_when: false
+
+- name: Get GID of bitcoin group
+  command: id -g bitcoin
+  register: raw_gid
+  changed_when: false
+
+- name: Interpret uid,gid values
+  set_fact:
+    bitcoin_uid: "{{raw_uid.stdout}}"
+    bitcoin_gid: "{{raw_gid.stdout}}"
+
+- name: Add mount point to fstab
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    regexp: '^lightning_nodes_backup_mount'
+    line: "lightning_nodes_backup_mount /var/gcs-backup-mount-unencrypted gcsfuse rw,x-systemd.requires=network-online.target,key_file=/etc/gcsfuse/gcs_access_keyfile.json,allow_other,uid={{bitcoin_uid}},gid={{bitcoin_gid}}"
+  register: fstab_mount
+
+- name: Mount now
+  command: mount /var/gcs-backup-mount-unencrypted
+  become: True
+  changed_when: false
+
+

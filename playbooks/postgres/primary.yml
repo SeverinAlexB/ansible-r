@@ -1,0 +1,10 @@
+---
+- hosts: postgres_primarys
+  become: True  
+  roles:
+    # - role: ../common
+    #   sshd_listen_publicly: True
+    # - base
+    - primary
+    - create_database
+

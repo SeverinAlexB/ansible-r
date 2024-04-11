@@ -1,0 +1,53 @@
+# Installs a systemd service that runs bitcoind.
+# 
+
+- name: create bitcoin user
+  user:
+    name: bitcoin
+    create_home: true
+    shell: /bin/bash
+    password: '!'
+
+- name: create bitcoin/conf directory
+  file:
+    path: '/home/bitcoin/.bitcoin'
+    mode: '0775'
+    owner: 'bitcoin'
+    group: 'bitcoin'
+    state: directory
+
+
+- name: create bitcoin.conf
+  template:
+    src: 'bitcoin.j2'
+    dest: '/home/bitcoin/.bitcoin/bitcoin.conf'
+    mode: '0644'
+    owner: 'bitcoin'
+    group: 'bitcoin'
+
+
+- name: configure ufw to allow port 8332
+  community.general.ufw:
+      rule: 'allow'
+      port: '8332'
+
+
+- name: configure ufw to allow port 8333
+  community.general.ufw:
+      rule: 'allow'
+      port: '8333'
+
+
+- name: create bitcoind.service configuration
+  copy:
+    src: 'files/bitcoind.service'
+    dest: '/etc/systemd/system/bitcoind.service'
+
+
+- name: reload bitcoind.service configuration 
+  command:
+    cmd: systemctl daemon-reload
+
+- name: restart bitcoind.service
+  command:
+    cmd: systemctl restart bitcoind

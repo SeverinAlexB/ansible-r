@@ -1,0 +1,84 @@
+
+- name: Create a cln binary directory if it does not exist
+  ansible.builtin.file:
+    path: /tmp/cln-binaries/
+    state: directory
+
+- name: Create a directory for unarchived cln
+  ansible.builtin.file:
+    path: /tmp/cln-binaries/{{cln_version}}
+    state: directory
+
+- name: Download cln {{cln_version}}
+  get_url:
+    url: https://github.com/ElementsProject/lightning/releases/download/v{{cln_version}}/clightning-v{{cln_version}}-Ubuntu-22.04.tar.xz
+    dest: /tmp/cln-binaries/{{cln_version}}/clightning-v{{cln_version}}-Ubuntu-22.04.tar.xz
+    checksum: sha256:{{ cln_checksum }}
+
+- name: Unarchive cln
+  unarchive:
+    copy: false
+    src: /tmp/cln-binaries/{{cln_version}}/clightning-v{{cln_version}}-Ubuntu-22.04.tar.xz
+    dest: /tmp/cln-binaries/{{cln_version}}
+
+- name: Copy file with owner and permissions
+  ansible.builtin.copy:
+    src: '/tmp/cln-binaries/{{cln_version}}/usr/{{item}}'
+    dest: /usr
+    mode: '0755'
+    remote_src: yes
+  with_items:
+    ['bin', 'libexec']
+  notify: restart lightning
+
+- name: Delete tmp folder
+  file:
+    state: absent
+    path: /tmp/cln-binaries/
+
+- name: Install libpq-dev + inotify-tools
+  ansible.builtin.apt:
+    pkg:
+    - libpq-dev
+    - inotify-tools
+    state: present
+
+- name: Create bitcoin user
+  user:
+    name: bitcoin
+    shell: /bin/bash
+    create_home: true
+    password: '!'
+
+- name: Create .lightning dir
+  ansible.builtin.file:
+    path: /home/bitcoin/.lightning
+    state: directory
+    owner: bitcoin
+    group: bitcoin
+
+- name: Create logs dir
+  ansible.builtin.file:
+    path: /home/bitcoin/.lightning/logs
+    state: directory
+    owner: bitcoin
+    group: bitcoin
+
+- name: Create plugins dir
+  ansible.builtin.file:
+    path: /home/bitcoin/.lightning/plugins
+    state: directory
+    owner: bitcoin
+    group: bitcoin
+
+- name: Create available-plugins dir
+  ansible.builtin.file:
+    path: /home/bitcoin/.lightning/available-plugins
+    state: directory
+    owner: bitcoin
+    group: bitcoin
+
+- name: Install virtualenv via pip for plugins
+  pip:
+    name: virtualenv
+    executable: pip3.10

@@ -1,0 +1,7 @@
+- name: Detect standby
+  include_tasks: detect_standby.yml
+
+- name: Install postgres
+  include_tasks: install.yml
+
+

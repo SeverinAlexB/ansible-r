@@ -1,0 +1,11 @@
+- name: Detect if standby is already created
+  stat:
+    path: /var/lib/postgresql/14/main/standby.signal
+  register: standby_already_initiated
+
+- name: Initial data backup from primary
+  include_tasks: copy_primary_data.yml
+  when: not standby_already_initiated.stat.exists
+
+- name: Config data sync
+  include_tasks: config.yml

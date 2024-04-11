@@ -1,0 +1,10 @@
+---
+- hosts: postgres_slaves
+  become: True
+  roles:
+    # - role: ../common
+    #   sshd_listen_publicly: True
+    - base
+    - slave
+
+

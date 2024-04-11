@@ -1,0 +1,7 @@
+---
+- hosts: bitcoin_servers
+  become: True
+  roles:
+    # - role: common
+    #   sshd_listen_publicly: True
+    - role: bitcoind

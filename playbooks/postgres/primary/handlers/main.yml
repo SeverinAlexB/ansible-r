@@ -1,0 +1,11 @@
+- name: restart postgres
+  service:
+      name: postgresql
+      state: restarted
+      daemon_reload: True
+
+- name: Reload pg_hba.conf
+  community.postgresql.postgresql_query:
+    db: postgres
+    query: SELECT pg_reload_conf();
+  become_user: postgres

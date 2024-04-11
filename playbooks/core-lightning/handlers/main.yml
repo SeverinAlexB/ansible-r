@@ -1,0 +1,13 @@
+- name: restart lightning
+  service:
+      name: lightning
+      state: restarted
+      enabled: true
+      daemon_reload: True
+
+- name: restart emergency_recover_watcher
+  service:
+      name: emergency_recover_watcher
+      state: restarted
+      enabled: true
+      daemon_reload: True

@@ -1,0 +1,39 @@
+- name: SSHD listen publicly
+  debug: 
+    msg: "SSHD listen publicly: {{ sshd_listen_publicly }}"
+
+- name: Perform full patching (apt-get upgrade)
+  package:
+    name: '*'
+    state: latest
+
+- name: Set hostname
+  command: hostnamectl set-hostname {{ inventory_hostname }}
+
+- name: Add redan user
+  include_tasks: add_redan_user.yml
+
+- name: Harden ssh
+  include_tasks: harden_ssh.yml
+
+- name: Harden firewall ufw
+  include_tasks: harden_firewall.yml
+
+- name: Harden OS
+  include_tasks: harden_os.yml
+
+- name: Harden kernel
+  include_tasks: harden_kernel.yml
+
+- name: Harden network
+  include_tasks: harden_network.yml
+
+- name: Harden userspace
+  include_tasks: harden_userspace.yml
+
+- name: Harden grub boot config
+  include_tasks: harden_grub.yml
+
+- name: Install default software
+  include_tasks: install_default_software.yml
+

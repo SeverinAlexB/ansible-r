@@ -1,0 +1,27 @@
+bitcoind:
+  hosts:
+    testnet-bitcoind-01-dus.redan.cloud:
+      bitcoind_rpcallowip:
+        - '194.163.159.87'
+
+postgres_standalone:
+  hosts:
+    testnet-postgres-01-dus.redan.cloud:
+      postgres_allow_subnet: '0.0.0.0/0'
+      postgres_databases:
+        - database: lightning
+          user: lightning
+          password: '{{ postgres_lightning_password }}'
+
+lightning_nodes:
+  hosts:
+    testnet-cln-01-dus.redan.cloud:
+      node_alias: 'testnet.zerofeerouting.com'
+      allow_ip_connections: True
+      allow_tor_connections: True
+      db_connection_string: 'postgres://lightning:{{postgres_lightning_password}}@testnet-postgres-01-dus.redan.cloud:5432/lightning'
+      bitcoin_nodes:
+        - ip: 'testnet-bitcoind-01-dus.redan.cloud'
+          port: 8332
+          user: 'redan'
+          password: '{{bitcoind_password}}'

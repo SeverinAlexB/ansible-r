@@ -1,0 +1,13 @@
+- name: Detect current channel_acceptor version
+  include_tasks: detect_version.yml
+
+- name: Compare channel_acceptor versions
+  debug: 
+    msg: "Current: {{ current_channel_acceptor_version }}. Should: {{channel_acceptor_version}}."
+
+- name: Install ChannelAcceptor
+  include_tasks: install.yml
+  when: current_channel_acceptor_version != channel_acceptor_version
+
+- name: Configure ChannelAcceptor
+  include_tasks: configure.yml

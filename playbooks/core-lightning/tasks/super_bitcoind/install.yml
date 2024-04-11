@@ -1,0 +1,67 @@
+- name: Create tmp directory
+  ansible.builtin.file:
+    path: /tmp/superbd/
+    state: directory
+
+- name: Download super_bitcoind {{super_bitcoind_version}}
+  get_url:
+    url: https://github.com/redan-ch/cln-super-bitcoind/releases/download/v{{super_bitcoind_version}}/cln_super_bitcoind_{{super_bitcoind_version}}.tar.gz
+    dest: /tmp/superbd/cln_super_bitcoind_{{super_bitcoind_version}}.tar.gz
+    checksum: sha256:{{ super_bitcoind_checksum }}
+
+- name: Create files dir
+  ansible.builtin.file:
+    path: /tmp/superbd/super-bitcoind
+    state: directory
+
+- name: Unarchive
+  unarchive:
+    copy: false
+    src: /tmp/superbd/cln_super_bitcoind_{{super_bitcoind_version}}.tar.gz
+    dest: /tmp/superbd/super-bitcoind
+
+- name: Copy file with owner and permissions
+  ansible.builtin.copy:
+    src: '/tmp/superbd/super-bitcoind'
+    dest: /home/bitcoin/.lightning/available-plugins/
+    mode: '0755'
+    owner: bitcoin
+    group: bitcoin
+    remote_src: yes
+
+- name: Delete tmp folder
+  file:
+    state: absent
+    path: /tmp/superbd/
+
+- name: Install requirements
+  ansible.builtin.pip:
+    requirements: /home/bitcoin/.lightning/available-plugins/super-bitcoind/requirements.txt
+    virtualenv: /home/bitcoin/.lightning/available-plugins/super-bitcoind/venv
+    virtualenv_python: python3.10
+
+- name: Recursively change ownership of a directory
+  ansible.builtin.file:
+    path: /home/bitcoin/.lightning/available-plugins/super-bitcoind/venv
+    state: directory
+    recurse: yes
+    owner: bitcoin
+    group: bitcoin
+
+- name: Copy venv start script
+  ansible.builtin.copy:
+    src: super_bitcoind.sh
+    dest: /home/bitcoin/.lightning/available-plugins/super-bitcoind/super_bitcoind.sh
+    mode: '0700'
+    owner: bitcoin
+    group: bitcoin
+
+- name: Create a symbolic link
+  ansible.builtin.file:
+    src: /home/bitcoin/.lightning/available-plugins/super-bitcoind/super_bitcoind.sh
+    dest: /home/bitcoin/.lightning/plugins/super_bitcoind.sh
+    owner: bitcoin
+    group: bitcoin
+    state: link
+  notify: restart lightning
+

@@ -1,0 +1,41 @@
+network=bitcoin
+alias={{node_alias}}
+rgb={{node_rgb}}
+
+disable-plugin=bcli
+
+pid-file=/home/bitcoin/.lightning/lightningd.pid
+log-file=/home/bitcoin/.lightning/logs/logs.txt
+
+fee-base=0
+fee-per-satoshi=0
+large-channels
+funding-confirms=3
+
+# Arbitrarily choosen max concurrent htlc
+max-concurrent-htlcs=10
+
+# Allows cln to connect to TOR nodes
+proxy=127.0.0.1:9050
+
+# Addresses
+{% if not allow_tor_connections and not allow_ip_connections %}
+# Do not connect to any peers.
+offline
+{% endif %}
+{% if allow_ip_connections %}
+# Allow ip connections
+addr=:9735
+{% endif %}
+{% if allow_tor_connections %}
+# Allow TOR connections
+addr=statictor:127.0.0.1:9051
+{% endif %}
+{% if allow_tor_connections and not allow_ip_connections %}
+# This makes cln listen on localhost so TOR can redirect traffic to it.
+bind-addr=127.0.0.1:9735
+{% endif %}
+
+{% if not use_sqlite_db %}
+wallet={{db_connection_string}}
+{% endif %}

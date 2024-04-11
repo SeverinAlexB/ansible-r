@@ -1,0 +1,3 @@
+- name: Create databases
+  include_tasks: create_database.yml
+  loop: "{{ postgres_databases }}"

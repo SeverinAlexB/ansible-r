@@ -1,0 +1,6 @@
+- name: Install tor
+  include_tasks: tor/install.yml
+
+
+
+

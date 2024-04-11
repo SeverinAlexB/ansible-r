@@ -1,0 +1,54 @@
+# installs and runs btcpay
+
+- name: configure ufw to allow port 9735 (lightning)
+  community.general.ufw:
+      rule: 'allow'
+      port: '9735'
+  when: ansible_distribution == 'Ubuntu'
+
+- name: configure ufw to allow port 443 (https)
+  community.general.ufw:
+      rule: 'allow'
+      port: '443'
+  when: ansible_distribution == 'Ubuntu'
+
+- name: configure ufw to allow port 80 (http)
+  community.general.ufw:
+      rule: 'allow'
+      port: '80'
+  when: ansible_distribution == 'Ubuntu'
+
+- name: check if BTCPay installed
+  stat:
+    path: /root/BTCPayServer/btcpayserver-docker
+  register: btcpay_installed
+
+- name: create BTCPayServer directory
+  when: btcpay_installed.stat.exists == false
+  file:
+    path: '/root/BTCPayServer/'
+    mode: '0755'
+    owner: 'root'
+    group: 'root'
+    state: directory
+
+- name: clone btcpayserver-docker
+  git:
+    repo: 'https://github.com/btcpayserver/btcpayserver-docker'
+    dest: /root/BTCPayServer/btcpayserver-docker
+
+- name: install/upgrade BTCPay
+  environment:
+    BTCPAY_HOST: "{{ btcpay_host }}"
+    NBITCOIN_NETWORK: "{{ nbitcoin_network }}"
+    BTCPAYGEN_CRYPTO1: "{{ btcpaygen_crypto01 }}"
+    BTCPAYGEN_ADDITIONAL_FRAGMENTS: "{{ btcpaygen_additional_fragments }}"
+    BTCPAYGEN_REVERSEPROXY: "{{ btcpaygen_reverseproxy }}"
+    BTCPAYGEN_LIGHTNING: "{{ btcpaygen_lightning }}"
+    BTCPAY_ENABLE_SSH: "{{ btcpay_enable_ssh }}"
+  shell:
+    chdir: /root/BTCPayServer/btcpayserver-docker
+    cmd: 'source /root/BTCPayServer/btcpayserver-docker/btcpay-setup.sh -i'
+  args:
+    executable: /bin/bash
+    

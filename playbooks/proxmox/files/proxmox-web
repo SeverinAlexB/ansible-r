@@ -1,0 +1,4 @@
+[ProxmoxWeb]
+title=Proxmox Web interface
+description=Proxmox VE Hypervisor
+ports=8006/tcp

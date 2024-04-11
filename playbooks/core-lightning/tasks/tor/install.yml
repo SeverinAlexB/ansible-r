@@ -1,0 +1,53 @@
+- name: Install tor
+  apt:
+    name:
+    - tor
+    state: 'present'
+
+- name: Enable tor service
+  ansible.builtin.systemd:
+    name: tor
+    enabled: yes
+    state: started
+
+- name: Config TOR
+  lineinfile:
+    path: "/etc/tor/torrc"
+    regex: "(#)?{{item.key}}"
+    line: "{{item.key}} {{item.value}}"
+    state: present
+  loop:
+    - { key: "ExitPolicy", value: "reject *:* # no exits allowed" }  # Do not allow this as exit node
+    - { key: "ControlPort", value: "9051" }
+    - { key: "CookieAuthentication", value: "1" }
+  register: tor_config1
+
+# Needed to separate these two configs because they start with the same key.
+# Therefore search for key + ' ' works better here.
+- name: Config TOR2 
+  lineinfile:
+    path: "/etc/tor/torrc"
+    regex: "(#)?{{item.key}}"
+    line: "{{item.key}}{{item.value}}"
+    state: present
+  loop:
+    - { key: "CookieAuthFile ", value: "/run/tor/control.authcookie" }
+    - { key: "CookieAuthFileGroupReadable ", value: "1" }
+  register: tor_config2
+
+- name: Add user 'bitcoin' to group 'debian-tor'
+  user:
+    name: bitcoin
+    groups: debian-tor
+    append: yes
+
+
+# Restart TOR here if needed because when tor and lightning is restarted at the same time (ansible handlers)
+# TOR will not work.
+
+- name: restart tor if needed
+  ansible.builtin.systemd:
+    name: tor
+    enabled: yes
+    state: restarted
+  when: tor_config1.changed or tor_config2.changed

@@ -1,0 +1,97 @@
+---
+# Very simple hardening. Not complete.
+
+# Granting write access to this directory for non-privileged users could provide
+# them the means for gaining unauthorized elevated privileges.
+# Granting read access to this directory could give an unprivileged user insight
+# in how to gain elevated privileges or circumvent auditing controls.
+# CIS 5.1.2 - CIS 5.1.7
+#
+- name: Find cron files and directories
+  find:
+    paths:
+      - /etc
+    patterns:
+      - cron.hourly
+      - cron.daily
+      - cron.weekly
+      - cron.monthly
+      - cron.d
+      - crontab
+    file_type: any
+  register: cron_directories
+
+- name: Ensure permissions on cron files and directories are configured
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: root
+    group: root
+    mode: og-rwx
+  with_items: "{{ cron_directories.files }}"
+
+
+- name: Remove suid/sgid bit from binaries in blacklist | os-06
+  file:
+    path: '{{ item }}'
+    mode: 'a-s'
+    state: 'file'
+    follow: 'yes'
+  failed_when: false
+  with_community.general.flattened:
+    - '{{ os_security_suid_sgid_system_blacklist }}'
+
+- name: Remove deprecated or insecure packages | package-01 - package-09
+  apt:
+    name: ['xinetd', 'inetd', 'ypserv', 'telnet-server', 'rsh-server', 'prelink']
+    state: 'absent'
+    purge: 'yes'
+
+- name: Remove remote console login agent
+  apt:
+    name: ['qemu-guest-agent']
+    state: 'absent'
+    purge: 'yes'
+  when: not qemu_guest_agent
+
+- name: Add remote console login agent
+  apt:
+    name: ['qemu-guest-agent']
+    state: 'present'
+    purge: 'yes'
+  when: qemu_guest_agent
+
+
+# Commented out because it generates problems with python
+# For example: Installing modules with root and they are not available to users.
+#
+# - name: Set standard file permission from 0022 (everybody read) to 0077 (only owner allowed)
+#   shell: umask 0077
+
+# - name: Apply umask permanently
+#   lineinfile:
+#     path: "/etc/login.defs"
+#     regex: "^(#)?{{item.key}}"
+#     line: "{{item.key}} {{item.value}}"
+#     state: present
+#   loop:
+#     - { key: "UMASK", value: "0077" }
+
+
+- name: Add 4s delay on a failed login attempt
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/passwd
+    regexp: '^auth optional pam_faildelay.so *'
+    line: "auth optional pam_faildelay.so delay=4000000"
+
+# https://madaidans-insecurities.github.io/guides/linux-hardening.html#additional-entropy-sources
+- name: Improve Random Number Generator
+  apt:
+    name: ['jitterentropy-rngd']
+    state: 'present'
+
+- name: Load RNG early
+  copy:
+    src: jitterentropy.conf
+    dest: /usr/lib/modules-load.d/jitterentropy.conf
+    owner: root
+    group: root

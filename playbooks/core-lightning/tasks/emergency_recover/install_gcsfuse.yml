@@ -1,0 +1,16 @@
+- name: Add Google GPG key
+  ansible.builtin.get_url:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    dest: /etc/apt/trusted.gpg.d/google-apt-key.gpg
+
+- name: Add google repository
+  ansible.builtin.apt_repository:
+    repo: deb http://packages.cloud.google.com/apt gcsfuse-focal main
+    state: present
+
+- name: Install gcsfuse
+  ansible.builtin.apt:
+    pkg:
+    - gcsfuse
+    state: present
+    update_cache: yes
